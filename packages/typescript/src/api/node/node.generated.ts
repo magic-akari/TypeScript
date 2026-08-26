@@ -866,6 +866,7 @@ export class RemoteNode extends RemoteNodeBase implements Node {
         switch (this.kind) {
             case SyntaxKind.Identifier:
             case SyntaxKind.PrivateIdentifier:
+            case SyntaxKind.DirectiveStatement:
             case SyntaxKind.JsxText:
             case SyntaxKind.JSDocText:
             case SyntaxKind.JSDocLink:

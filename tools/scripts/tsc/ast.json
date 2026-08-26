@@ -305,6 +305,7 @@
             "EmptyStatement",
             "VariableStatement",
             "ExpressionStatement",
+            "DirectiveStatement",
             "IfStatement",
             "DoStatement",
             "WhileStatement",
@@ -1625,6 +1626,19 @@
                     {
                         "name": "Expression",
                         "type": "Expression"
+                    }
+                ],
+                "arena": true
+            },
+            "DirectiveStatement": {
+                "generateSubtreeFacts": true,
+                "extends": [
+                    "StatementBase"
+                ],
+                "members": [
+                    {
+                        "name": "Text",
+                        "type": "string"
                     }
                 ],
                 "arena": true

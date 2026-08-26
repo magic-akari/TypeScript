@@ -266,7 +266,8 @@ func (tx *DeclarationTransformer) visit(node *ast.Node) *ast.Node {
 		ast.KindNotEmittedStatement,
 		ast.KindBlock,
 		ast.KindMissingDeclaration,
-		ast.KindExpressionStatement:
+		ast.KindExpressionStatement,
+		ast.KindDirectiveStatement:
 		return nil
 	// parts of things, things we just visit children of
 	default:

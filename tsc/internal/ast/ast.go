@@ -275,6 +275,8 @@ func (n *Node) Text() string {
 		return n.AsIdentifier().Text
 	case KindPrivateIdentifier:
 		return n.AsPrivateIdentifier().Text
+	case KindDirectiveStatement:
+		return n.AsDirectiveStatement().Text
 	case KindStringLiteral:
 		return n.AsStringLiteral().Text
 	case KindNumericLiteral:
@@ -471,6 +473,15 @@ func (m *MutableNode) SetExpression(expr *Node) {
 	default:
 		panic("Unhandled case in mutableNode.SetExpression: " + n.Kind.String())
 	}
+}
+
+// Value returns the directive value between the quotes.
+// Escape sequences are returned verbatim.
+func (node *DirectiveStatement) Value() string {
+	if len(node.Text) < 2 {
+		return ""
+	}
+	return node.Text[1 : len(node.Text)-1]
 }
 
 func (n *Node) ArgumentList() *NodeList {

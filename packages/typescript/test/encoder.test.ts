@@ -10,6 +10,7 @@ import {
 import {
     createArrayLiteralExpression,
     createBlock,
+    createDirectiveStatement,
     createExpressionStatement,
     createFunctionDeclaration,
     createIdentifier,
@@ -67,7 +68,7 @@ describe("Encoder", () => {
         // Verify header
         const view = new DataView(encoded.buffer, encoded.byteOffset, encoded.byteLength);
         const metadata = view.getUint32(0, true);
-        assert.strictEqual(metadata >>> 24, 8, "protocol version should be 8");
+        assert.strictEqual(metadata >>> 24, 9, "protocol version should be 9");
 
         // Verify we can decode it
         const decoded = decode(encoded);
@@ -179,11 +180,21 @@ describe("Encoder", () => {
         assert.strictEqual(rootKind, SyntaxKind.IfStatement);
     });
 
-    test("protocol version is 8", () => {
+    test("protocol version is 9", () => {
         const sf = makeSF("", "/test.ts", []);
         const encoded = encodeSourceFile(sf);
         const view = new DataView(encoded.buffer, encoded.byteOffset, encoded.byteLength);
-        assert.strictEqual(view.getUint32(0, true) >>> 24, 8);
+        assert.strictEqual(view.getUint32(0, true) >>> 24, 9);
+    });
+
+    test("directive text is preserved", () => {
+        const directive = createDirectiveStatement(String.raw`"use\x20strict"`);
+        const decoded = decode(encodeSourceFile(makeSF(`"use\\x20strict";`, "/test.ts", [directive])));
+        const decodedDirective = decoded.statements?.at(0);
+
+        assert.ok(decodedDirective);
+        assert.strictEqual(decodedDirective.kind, SyntaxKind.DirectiveStatement);
+        assert.strictEqual(decodedDirective.text, String.raw`"use\x20strict"`);
     });
 
     test("encodes source files without content mapping metadata", () => {

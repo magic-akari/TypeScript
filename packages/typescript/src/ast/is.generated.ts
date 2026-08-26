@@ -70,6 +70,7 @@ import type {
     DefaultKeyword,
     DeleteExpression,
     DestructuringAssignment,
+    DirectiveStatement,
     DoStatement,
     DotDotDotToken,
     DotToken,
@@ -537,6 +538,15 @@ export declare namespace isExpressionStatement {
     function Handle<T extends NodeHandleLike<Node>>(node: T): node is SpecializeNodeHandle<T, ExpressionStatement>;
 }
 isExpressionStatement.Handle = isExpressionStatement as any;
+
+export function isDirectiveStatement(node: Node): node is DirectiveStatement {
+    return node.kind === SyntaxKind.DirectiveStatement;
+}
+
+export declare namespace isDirectiveStatement {
+    function Handle<T extends NodeHandleLike<Node>>(node: T): node is SpecializeNodeHandle<T, DirectiveStatement>;
+}
+isDirectiveStatement.Handle = isDirectiveStatement as any;
 
 export function isBlock(node: Node): node is Block {
     return node.kind === SyntaxKind.Block;

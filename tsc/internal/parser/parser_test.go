@@ -186,6 +186,49 @@ class MissingImplements implements B. {}
 	assert.Equal(t, missingImplementsDecl.HeritageClauses.Nodes[0].AsHeritageClause().Types.Nodes[0].Kind, ast.KindExpressionWithTypeArguments)
 }
 
+func TestDirectiveStatements(t *testing.T) {
+	t.Parallel()
+	sourceText := `
+"use strict";
+"use\x20strict";
+type T = string;
+"not a directive";
+function f() {
+    "use\u0020client";
+    interface I {}
+    "not a directive";
+}
+{
+    "not a directive";
+}
+`
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{
+		FileName: "/index.ts",
+		Path:     "/index.ts",
+	}, sourceText, core.ScriptKindTS)
+
+	first := file.Statements.Nodes[0]
+	assert.Equal(t, first.Kind, ast.KindDirectiveStatement)
+	assert.Equal(t, first.AsDirectiveStatement().Text, `"use strict"`)
+	assert.Equal(t, first.AsDirectiveStatement().Value(), "use strict")
+
+	escaped := file.Statements.Nodes[1]
+	assert.Equal(t, escaped.Kind, ast.KindDirectiveStatement)
+	assert.Equal(t, escaped.AsDirectiveStatement().Text, `"use\x20strict"`)
+	assert.Equal(t, escaped.AsDirectiveStatement().Value(), `use\x20strict`)
+
+	assert.Equal(t, file.Statements.Nodes[3].Kind, ast.KindExpressionStatement)
+
+	functionBody := file.Statements.Nodes[4].Body().AsBlock().Statements.Nodes
+	assert.Equal(t, functionBody[0].Kind, ast.KindDirectiveStatement)
+	assert.Equal(t, functionBody[0].AsDirectiveStatement().Text, `"use\u0020client"`)
+	assert.Equal(t, functionBody[0].AsDirectiveStatement().Value(), `use\u0020client`)
+	assert.Equal(t, functionBody[2].Kind, ast.KindExpressionStatement)
+
+	block := file.Statements.Nodes[5].AsBlock()
+	assert.Equal(t, block.Statements.Nodes[0].Kind, ast.KindExpressionStatement)
+}
+
 func TestJSDocImportTypeParentChain(t *testing.T) {
 	t.Parallel()
 	sourceText := `test("", async function () {

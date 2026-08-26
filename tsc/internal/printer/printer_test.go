@@ -2622,3 +2622,40 @@ func TestOmitTrailingSemicolon(t *testing.T) {
 		t.Fatalf("omit EmitSourceFile(for) = %q, want %q", got, "for (;;) { }")
 	}
 }
+
+func TestEnsureUseStrictUsesRawDirectiveValue(t *testing.T) {
+	t.Parallel()
+
+	file := parsetestutil.ParseTypeScript(`"use\x20strict";`, false)
+	context := printer.NewEmitContext()
+	statements := context.Factory.EnsureUseStrict(file.Statements.Nodes)
+
+	if len(statements) != 2 {
+		t.Fatalf("EnsureUseStrict() returned %d statements, want 2", len(statements))
+	}
+	if value := statements[0].AsDirectiveStatement().Value(); value != "use strict" {
+		t.Fatalf("inserted directive value = %q, want %q", value, "use strict")
+	}
+	if value := statements[1].AsDirectiveStatement().Value(); value != `use\x20strict` {
+		t.Fatalf("source directive value = %q, want %q", value, `use\x20strict`)
+	}
+}
+
+func TestEmitDistinguishesDirectiveFromLeadingStringExpression(t *testing.T) {
+	t.Parallel()
+
+	var factory ast.NodeFactory
+	ordinaryExpression := factory.NewStringLiteral("not a directive", ast.TokenFlagsNone)
+	file := factory.NewSourceFile(
+		ast.SourceFileParseOptions{FileName: "/file.ts", Path: "/file.ts"},
+		"",
+		factory.NewNodeList([]*ast.Node{
+			factory.NewDirectiveStatement(`"use client"`),
+			factory.NewExpressionStatement(ordinaryExpression),
+		}),
+		factory.NewToken(ast.KindEndOfFile),
+	)
+
+	parsetestutil.MarkSyntheticRecursive(file)
+	emittestutil.CheckEmit(t, nil, file.AsSourceFile(), "\"use client\";\n(\"not a directive\");")
+}

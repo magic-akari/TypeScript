@@ -114,7 +114,7 @@ function isTypeNodeKind(kind: SyntaxKind): boolean {
 export function isStatement(node: Node): node is Statement {
     const kind = node.kind;
     return kind === SyntaxKind.VariableStatement || kind === SyntaxKind.EmptyStatement
-        || kind === SyntaxKind.ExpressionStatement || kind === SyntaxKind.IfStatement
+        || kind === SyntaxKind.ExpressionStatement || kind === SyntaxKind.DirectiveStatement || kind === SyntaxKind.IfStatement
         || kind === SyntaxKind.DoStatement || kind === SyntaxKind.WhileStatement
         || kind === SyntaxKind.ForStatement || kind === SyntaxKind.ForInStatement
         || kind === SyntaxKind.ForOfStatement || kind === SyntaxKind.ContinueStatement

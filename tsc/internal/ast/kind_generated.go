@@ -272,6 +272,7 @@ const (
 	KindEmptyStatement
 	KindVariableStatement
 	KindExpressionStatement
+	KindDirectiveStatement
 	KindIfStatement
 	KindDoStatement
 	KindWhileStatement

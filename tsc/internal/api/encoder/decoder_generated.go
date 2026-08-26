@@ -17,6 +17,8 @@ func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uin
 		return d.factory.NewIdentifier(text), nil
 	case ast.KindPrivateIdentifier:
 		return d.factory.NewPrivateIdentifier(text), nil
+	case ast.KindDirectiveStatement:
+		return d.factory.NewDirectiveStatement(text), nil
 	case ast.KindJsxText:
 		containsOnlyTriviaWhiteSpaces := commonData&1 != 0
 		return d.factory.NewJsxText(text, containsOnlyTriviaWhiteSpaces), nil

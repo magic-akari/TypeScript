@@ -2334,6 +2334,8 @@ func (c *Checker) checkSourceElementWorker(node *ast.Node) {
 		c.checkVariableStatement(node)
 	case ast.KindExpressionStatement:
 		c.checkExpressionStatement(node)
+	case ast.KindDirectiveStatement:
+		c.checkGrammarStatementInAmbientContext(node)
 	case ast.KindIfStatement:
 		c.checkIfStatement(node)
 	case ast.KindDoStatement:

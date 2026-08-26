@@ -138,6 +138,7 @@ type Printer struct {
 	declarationListContainerEnd       int
 	detachedCommentsInfo              core.Stack[detachedCommentsInfo]
 	commentsDisabled                  bool
+	inDirectivePrologue               bool
 	inExtends                         bool // whether we are emitting the `extends` clause of a ConditionalTypeNode or InferTypeNode
 	nameGenerator                     NameGenerator
 	makeFileLevelOptimisticUniqueName func(string) string
@@ -1598,6 +1599,10 @@ func (p *Printer) emitSignature(node *ast.Node) {
 }
 
 func (p *Printer) emitFunctionBody(body *ast.Block) {
+	savedInDirectivePrologue := p.inDirectivePrologue
+	p.inDirectivePrologue = true
+	defer func() { p.inDirectivePrologue = savedInDirectivePrologue }()
+
 	p.emitContext.AddEmitFlags(body.AsNode(), EFNoSourceMap)
 
 	// Use only notification hooks for the body block, not the full comment pipeline.
@@ -1618,7 +1623,9 @@ func (p *Printer) emitFunctionBody(body *ast.Block) {
 	detachedState := p.emitDetachedCommentsBeforeStatementList(body.AsNode(), body.Statements.Loc)
 	statementOffset := p.emitPrologueDirectives(body.Statements)
 	pos := p.writer.GetTextPos()
-	p.emitHelpers(body.AsNode())
+	if p.emitHelpers(body.AsNode()) {
+		p.inDirectivePrologue = false
+	}
 
 	if p.shouldEmitBlockFunctionBodyOnSingleLine(body) && statementOffset == 0 && pos == p.writer.GetTextPos() {
 		p.decreaseIndent()
@@ -3410,10 +3417,14 @@ func (p *Printer) emitEmptyStatement(node *ast.EmptyStatement, isEmbeddedStateme
 	p.exitNode(node.AsNode(), state)
 }
 
-func (p *Printer) emitExpressionStatement(node *ast.ExpressionStatement) {
+func (p *Printer) emitExpressionStatement(node *ast.ExpressionStatement, parenthesizeStringLiteral bool) {
 	state := p.enterNode(node.AsNode())
 
-	if p.currentSourceFile != nil && p.currentSourceFile.ScriptKind == core.ScriptKindJSON {
+	if parenthesizeStringLiteral {
+		p.writePunctuation("(")
+		p.emitExpression(node.Expression, ast.OperatorPrecedenceComma)
+		p.writePunctuation(")")
+	} else if p.currentSourceFile != nil && p.currentSourceFile.ScriptKind == core.ScriptKindJSON {
 		// !!! In strada, this was handled by an undefined parenthesizerRule, so this is a hack.
 		p.emitExpression(node.Expression, ast.OperatorPrecedenceComma)
 	} else if isImmediatelyInvokedFunctionExpressionOrArrowFunction(node.Expression) {
@@ -3438,6 +3449,13 @@ func (p *Printer) emitExpressionStatement(node *ast.ExpressionStatement) {
 		p.writeTrailingSemicolon()
 	}
 
+	p.exitNode(node.AsNode(), state)
+}
+
+func (p *Printer) emitDirectiveStatement(node *ast.DirectiveStatement) {
+	state := p.enterNode(node.AsNode())
+	p.writer.WriteStringLiteral(node.Text)
+	p.writeTrailingSemicolon()
 	p.exitNode(node.AsNode(), state)
 }
 
@@ -4149,6 +4167,18 @@ func (p *Printer) emitEmbeddedStatement(parentNode *ast.Node, node *ast.Statemen
 }
 
 func (p *Printer) emitStatement(node *ast.Statement) {
+	parenthesizeStringLiteral := false
+	if p.inDirectivePrologue {
+		switch node.Kind {
+		case ast.KindDirectiveStatement, ast.KindNotEmittedStatement:
+		case ast.KindExpressionStatement:
+			parenthesizeStringLiteral = node.Expression().Kind == ast.KindStringLiteral
+			p.inDirectivePrologue = false
+		default:
+			p.inDirectivePrologue = false
+		}
+	}
+
 	if snippetElement := p.emitContext.SnippetElement(node); snippetElement != nil {
 		p.emitSnippetNode(node, snippetElement)
 		return
@@ -4163,7 +4193,9 @@ func (p *Printer) emitStatement(node *ast.Statement) {
 	case ast.KindVariableStatement:
 		p.emitVariableStatement(node.AsVariableStatement())
 	case ast.KindExpressionStatement:
-		p.emitExpressionStatement(node.AsExpressionStatement())
+		p.emitExpressionStatement(node.AsExpressionStatement(), parenthesizeStringLiteral)
+	case ast.KindDirectiveStatement:
+		p.emitDirectiveStatement(node.AsDirectiveStatement())
 	case ast.KindIfStatement:
 		p.emitIfStatement(node.AsIfStatement())
 	case ast.KindDoStatement:
@@ -4659,7 +4691,9 @@ func (p *Printer) emitHelpers(node *ast.Node) bool {
 func (p *Printer) emitSourceFile(node *ast.SourceFile) {
 	savedCurrentSourceFile := p.currentSourceFile
 	savedCommentsDisabled := p.commentsDisabled
+	savedInDirectivePrologue := p.inDirectivePrologue
 	p.currentSourceFile = node
+	p.inDirectivePrologue = node.ScriptKind != core.ScriptKindJSON
 
 	p.writeLine()
 
@@ -4675,7 +4709,9 @@ func (p *Printer) emitSourceFile(node *ast.SourceFile) {
 			p.writeLine()
 		}
 		state = p.emitDetachedCommentsBeforeStatementList(node.AsNode(), node.Statements.Loc)
-		p.emitHelpers(node.AsNode())
+		if p.emitHelpers(node.AsNode()) {
+			p.inDirectivePrologue = false
+		}
 		if node.IsDeclarationFile {
 			p.emitTripleSlashDirectives(node)
 		}
@@ -4696,6 +4732,7 @@ func (p *Printer) emitSourceFile(node *ast.SourceFile) {
 	p.emitDetachedCommentsAfterStatementList(node.AsNode(), node.Statements.Loc, state)
 	p.currentSourceFile = savedCurrentSourceFile
 	p.commentsDisabled = savedCommentsDisabled
+	p.inDirectivePrologue = savedInDirectivePrologue
 }
 
 func (p *Printer) emitTripleSlashDirectives(node *ast.SourceFile) {

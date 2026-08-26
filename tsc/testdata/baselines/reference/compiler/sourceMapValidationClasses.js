@@ -44,7 +44,7 @@ var Foo;
 (function (Foo) {
     var Bar;
     (function (Bar) {
-        "use strict";
+        ("use strict");
         class Greeter {
             constructor(greeting) {
                 this.greeting = greeting;

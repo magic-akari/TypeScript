@@ -594,6 +594,10 @@ export interface ExpressionStatement extends StatementBase {
     readonly kind: SyntaxKind.ExpressionStatement;
     readonly expression: Expression;
 }
+export interface DirectiveStatement extends StatementBase {
+    readonly kind: SyntaxKind.DirectiveStatement;
+    readonly text: string;
+}
 export interface Block extends StatementBase {
     readonly kind: SyntaxKind.Block;
     readonly statements: NodeArray<Statement>;

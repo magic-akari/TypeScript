@@ -25,6 +25,7 @@ type NodeFactory struct {
 	callExpressionArena                core.Arena[CallExpression]
 	conditionalExpressionArena         core.Arena[ConditionalExpression]
 	constructSignatureDeclarationArena core.Arena[ConstructSignatureDeclaration]
+	directiveStatementArena            core.Arena[DirectiveStatement]
 	elementAccessExpressionArena       core.Arena[ElementAccessExpression]
 	expressionStatementArena           core.Arena[ExpressionStatement]
 	expressionWithTypeArgumentsArena   core.Arena[ExpressionWithTypeArguments]
@@ -274,6 +275,7 @@ type (
 	DebuggerStatementNode             = Node
 	LabeledStatementNode              = Node
 	ExpressionStatementNode           = Node
+	DirectiveStatementNode            = Node
 	BlockNode                         = Node
 	VariableStatementNode             = Node
 	VariableDeclarationNode           = Node
@@ -1602,6 +1604,34 @@ func (node *ExpressionStatement) computeSubtreeFacts() SubtreeFacts {
 
 func IsExpressionStatement(node *Node) bool {
 	return node.Kind == KindExpressionStatement
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// DirectiveStatement
+// ──────────────────────────────────────────────────────────────────────
+
+type DirectiveStatement struct {
+	StatementBase
+	Text string
+}
+
+func (f *NodeFactory) NewDirectiveStatement(text string) *Node {
+	data := f.directiveStatementArena.New()
+	data.Text = text
+	f.textCount++
+	return f.newNode(KindDirectiveStatement, data)
+}
+
+func (node *DirectiveStatement) Clone(f NodeFactoryCoercible) *Node {
+	return cloneNode(f.AsNodeFactory().NewDirectiveStatement(node.Text), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *DirectiveStatement) computeSubtreeFacts() SubtreeFacts {
+	return SubtreeFactsNone
+}
+
+func IsDirectiveStatement(node *Node) bool {
+	return node.Kind == KindDirectiveStatement
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -9126,6 +9156,10 @@ func (n *Node) AsLabeledStatement() *LabeledStatement {
 
 func (n *Node) AsExpressionStatement() *ExpressionStatement {
 	return n.data.(*ExpressionStatement)
+}
+
+func (n *Node) AsDirectiveStatement() *DirectiveStatement {
+	return n.data.(*DirectiveStatement)
 }
 
 func (n *Node) AsBlock() *Block {

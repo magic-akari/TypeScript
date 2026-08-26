@@ -434,7 +434,13 @@ func (p *Parser) parseSourceFileWorker() *ast.SourceFile {
 		p.contextFlags |= ast.NodeFlagsAmbient
 	}
 	pos := p.nodePos()
-	statements := p.parseListIndex(PCSourceElements, (*Parser).parseToplevelStatement)
+	inDirectivePrologue := true
+	statements := p.parseListIndex(PCSourceElements, func(p *Parser, i int) *ast.Node {
+		allowDirective := inDirectivePrologue && p.token == ast.KindStringLiteral
+		statement := p.parseToplevelStatement(i, allowDirective)
+		inDirectivePrologue = ast.IsDirectiveStatement(statement)
+		return statement
+	})
 	end := p.nodePos()
 	endJSDoc := p.jsdocScannerInfo()
 	eof := p.parseTokenNode()
@@ -497,9 +503,9 @@ func (p *Parser) createJSDocCache() map[*ast.Node][]*ast.Node {
 	return result
 }
 
-func (p *Parser) parseToplevelStatement(i int) *ast.Node {
+func (p *Parser) parseToplevelStatement(i int, allowDirective bool) *ast.Node {
 	p.statementHasAwaitIdentifier = false
-	statement := p.parseStatement()
+	statement := p.parseStatementWorker(allowDirective)
 	// Reparsed nodes (e.g. JSDoc @typedef) produced while parsing this statement are inserted
 	// into the statement list before this statement, so account for them when recording the
 	// statement's index for possibleAwaitSpans.
@@ -1061,11 +1067,15 @@ func (p *Parser) parseOptionalTokenJSDoc(kind ast.Kind) *ast.Node {
 }
 
 func (p *Parser) parseStatement() *ast.Statement {
+	return p.parseStatementWorker(false)
+}
+
+func (p *Parser) parseStatementWorker(allowDirective bool) *ast.Statement {
 	switch p.token {
 	case ast.KindSemicolonToken:
 		return p.parseEmptyStatement()
 	case ast.KindOpenBraceToken:
-		return p.parseBlock(false /*ignoreMissingOpenBrace*/, nil)
+		return p.parseBlock(false /*ignoreMissingOpenBrace*/, nil, false /*allowDirectives*/)
 	case ast.KindVarKeyword:
 		return p.parseVariableStatement(p.nodePos(), p.jsdocScannerInfo(), nil /*modifiers*/)
 	case ast.KindLetKeyword:
@@ -1118,7 +1128,7 @@ func (p *Parser) parseStatement() *ast.Statement {
 			return p.parseDeclaration()
 		}
 	}
-	return p.parseExpressionOrLabeledStatement()
+	return p.parseExpressionOrLabeledStatement(allowDirective)
 }
 
 func (p *Parser) parseDeclaration() *ast.Statement {
@@ -1205,7 +1215,7 @@ func (p *Parser) nextTokenIsBindingIdentifierOrStartOfDestructuring() bool {
 	return p.isBindingIdentifier() || p.token == ast.KindOpenBraceToken || p.token == ast.KindOpenBracketToken
 }
 
-func (p *Parser) parseBlock(ignoreMissingOpenBrace bool, diagnosticMessage *diagnostics.Message) *ast.Node {
+func (p *Parser) parseBlock(ignoreMissingOpenBrace bool, diagnosticMessage *diagnostics.Message, allowDirectives bool) *ast.Node {
 	pos := p.nodePos()
 	jsdoc := p.jsdocScannerInfo()
 	openBracePosition := p.scanner.TokenStart()
@@ -1213,7 +1223,18 @@ func (p *Parser) parseBlock(ignoreMissingOpenBrace bool, diagnosticMessage *diag
 	multiline := false
 	if openBraceParsed || ignoreMissingOpenBrace {
 		multiline = p.hasPrecedingLineBreak()
-		statements := p.parseList(PCBlockStatements, (*Parser).parseStatement)
+		var statements *ast.NodeList
+		if allowDirectives {
+			inDirectivePrologue := true
+			statements = p.parseList(PCBlockStatements, func(p *Parser) *ast.Node {
+				allowDirective := inDirectivePrologue && p.token == ast.KindStringLiteral
+				statement := p.parseStatementWorker(allowDirective)
+				inDirectivePrologue = ast.IsDirectiveStatement(statement)
+				return statement
+			})
+		} else {
+			statements = p.parseList(PCBlockStatements, (*Parser).parseStatement)
+		}
 		p.parseExpectedMatchingBrackets(ast.KindOpenBraceToken, ast.KindCloseBraceToken, openBraceParsed, openBracePosition)
 		result := p.finishNode(p.factory.NewBlock(statements, multiline), pos)
 		p.withJSDoc(result, jsdoc)
@@ -1476,7 +1497,7 @@ func (p *Parser) parseTryStatement() *ast.Node {
 	pos := p.nodePos()
 	jsdoc := p.jsdocScannerInfo()
 	p.parseExpected(ast.KindTryKeyword)
-	tryBlock := p.parseBlock(false /*ignoreMissingOpenBrace*/, nil)
+	tryBlock := p.parseBlock(false /*ignoreMissingOpenBrace*/, nil, false /*allowDirectives*/)
 	var catchClause *ast.Node
 	if p.token == ast.KindCatchKeyword {
 		catchClause = p.parseCatchClause()
@@ -1486,7 +1507,7 @@ func (p *Parser) parseTryStatement() *ast.Node {
 	var finallyBlock *ast.Node
 	if catchClause == nil || p.token == ast.KindFinallyKeyword {
 		p.parseExpectedWithDiagnostic(ast.KindFinallyKeyword, diagnostics.X_catch_or_finally_expected, true /*shouldAdvance*/)
-		finallyBlock = p.parseBlock(false /*ignoreMissingOpenBrace*/, nil)
+		finallyBlock = p.parseBlock(false /*ignoreMissingOpenBrace*/, nil, false /*allowDirectives*/)
 	}
 	result := p.finishNode(p.factory.NewTryStatement(tryBlock, catchClause, finallyBlock), pos)
 	p.withJSDoc(result, jsdoc)
@@ -1501,7 +1522,7 @@ func (p *Parser) parseCatchClause() *ast.Node {
 		variableDeclaration = p.parseVariableDeclaration()
 		p.parseExpected(ast.KindCloseParenToken)
 	}
-	block := p.parseBlock(false /*ignoreMissingOpenBrace*/, nil)
+	block := p.parseBlock(false /*ignoreMissingOpenBrace*/, nil, false /*allowDirectives*/)
 	result := p.finishNode(p.factory.NewCatchClause(variableDeclaration, block), pos)
 	return result
 }
@@ -1516,13 +1537,17 @@ func (p *Parser) parseDebuggerStatement() *ast.Node {
 	return result
 }
 
-func (p *Parser) parseExpressionOrLabeledStatement() *ast.Statement {
+func (p *Parser) parseExpressionOrLabeledStatement(allowDirective bool) *ast.Statement {
 	// Avoiding having to do the lookahead for a labeled statement by just trying to parse
 	// out an expression, seeing if it is identifier and then seeing if it is followed by
 	// a colon.
 	pos := p.nodePos()
 	jsdoc := p.jsdocScannerInfo()
 	hasParen := p.token == ast.KindOpenParenToken
+	directiveText := ""
+	if allowDirective {
+		directiveText = p.currentDirectiveText()
+	}
 	expression := p.parseExpression()
 
 	if expression.Kind == ast.KindIdentifier && p.parseOptional(ast.KindColonToken) {
@@ -1534,12 +1559,27 @@ func (p *Parser) parseExpressionOrLabeledStatement() *ast.Statement {
 	if !p.tryParseSemicolon() {
 		p.parseErrorForMissingSemicolonAfter(expression)
 	}
-	result := p.finishNode(p.factory.NewExpressionStatement(expression), pos)
+	var result *ast.Node
+	if allowDirective && expression.Kind == ast.KindStringLiteral {
+		result = p.finishNode(p.factory.NewDirectiveStatement(directiveText), pos)
+	} else {
+		result = p.finishNode(p.factory.NewExpressionStatement(expression), pos)
+	}
 	if hasParen {
 		jsdoc &^= jsdocScannerInfoHasJSDoc
 	}
 	p.withJSDoc(result, jsdoc)
 	return result
+}
+
+func (p *Parser) currentDirectiveText() string {
+	start := p.scanner.TokenStart()
+	end := p.scanner.TokenEnd()
+	if start >= end {
+		return ""
+	}
+
+	return p.sourceText[start:end]
 }
 
 func (p *Parser) parseVariableStatement(pos int, jsdoc jsdocScannerInfo, modifiers *ast.ModifierList) *ast.Node {
@@ -1958,7 +1998,7 @@ func (p *Parser) parseClassStaticBlockBody() *ast.Node {
 	saveContextFlags := p.contextFlags
 	p.setContextFlags(ast.NodeFlagsYieldContext, false)
 	p.setContextFlags(ast.NodeFlagsAwaitContext, true)
-	body := p.parseBlock(false /*ignoreMissingOpenBrace*/, nil /*diagnosticMessage*/)
+	body := p.parseBlock(false /*ignoreMissingOpenBrace*/, nil /*diagnosticMessage*/, false /*allowDirectives*/)
 	p.contextFlags = saveContextFlags
 	return body
 }
@@ -3549,7 +3589,7 @@ func (p *Parser) parseFunctionBlock(flags ParseFlags, diagnosticMessage *diagnos
 	// We may be in a [Decorator] context when parsing a function expression or
 	// arrow function. The body of the function is not in [Decorator] context.
 	p.setContextFlags(ast.NodeFlagsDecoratorContext, false)
-	block := p.parseBlock(flags&ParseFlagsIgnoreMissingOpenBrace != 0, diagnosticMessage)
+	block := p.parseBlock(flags&ParseFlagsIgnoreMissingOpenBrace != 0, diagnosticMessage, true /*allowDirectives*/)
 	p.contextFlags = saveContextFlags
 	p.statementHasAwaitIdentifier = saveHasAwaitIdentifier
 	return block

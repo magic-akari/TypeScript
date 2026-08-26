@@ -1,0 +1,53 @@
+//// [tests/cases/compiler/directivePrologueAfterTypeErasure.ts] ////
+
+=== source.ts ===
+"use source";
+type SourceType = string;
+>SourceType : Symbol(SourceType, Decl(source.ts, 0, 13))
+
+"use client";
+
+function afterTypeAlias() {
+>afterTypeAlias : Symbol(afterTypeAlias, Decl(source.ts, 2, 13))
+
+    type T = string;
+>T : Symbol(T, Decl(source.ts, 4, 27))
+
+    "use client";
+}
+
+function afterInterface() {
+>afterInterface : Symbol(afterInterface, Decl(source.ts, 7, 1))
+
+    interface I {}
+>I : Symbol(I, Decl(source.ts, 9, 27))
+
+    "use server";
+}
+
+function escapedUseStrict(parameter = 0) {
+>escapedUseStrict : Symbol(escapedUseStrict, Decl(source.ts, 12, 1))
+>parameter : Symbol(parameter, Decl(source.ts, 14, 26))
+
+    "use\x20strict";
+}
+
+namespace N {
+>N : Symbol(N, Decl(source.ts, 16, 1))
+
+    type T = string;
+>T : Symbol(T, Decl(source.ts, 18, 13))
+
+    "use client";
+}
+
+=== dependency.ts ===
+export interface Dependency {}
+>Dependency : Symbol(Dependency, Decl(dependency.ts, 0, 0))
+
+=== importType.ts ===
+import type { Dependency } from "./dependency";
+>Dependency : Symbol(Dependency, Decl(importType.ts, 0, 13))
+
+"use client";
+

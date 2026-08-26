@@ -661,6 +661,7 @@ func isStatementKindButNotDeclarationKind(kind Kind) bool {
 		KindDebuggerStatement,
 		KindDoStatement,
 		KindExpressionStatement,
+		KindDirectiveStatement,
 		KindEmptyStatement,
 		KindForInStatement,
 		KindForOfStatement,
@@ -765,8 +766,7 @@ func IsJSDocTypeAssertion(node *Node) bool {
 }
 
 func IsPrologueDirective(node *Node) bool {
-	return node.Kind == KindExpressionStatement &&
-		node.Expression().Kind == KindStringLiteral
+	return node.Kind == KindDirectiveStatement
 }
 
 type OuterExpressionKinds uint16

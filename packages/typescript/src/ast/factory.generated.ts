@@ -43,6 +43,7 @@ import type {
     Decorator,
     DefaultClause,
     DeleteExpression,
+    DirectiveStatement,
     DoStatement,
     DotDotDotToken,
     ElementAccessExpression,
@@ -790,6 +791,8 @@ function cloneNodeData(node: Node): any {
             return { label: n.label, statement: n.statement };
         case SyntaxKind.ExpressionStatement:
             return { expression: n.expression };
+        case SyntaxKind.DirectiveStatement:
+            return { text: n.text };
         case SyntaxKind.Block:
             return { statements: n.statements, multiLine: n.multiLine };
         case SyntaxKind.VariableStatement:
@@ -1822,6 +1825,12 @@ export function createExpressionStatement(expression: Expression): ExpressionSta
     return new NodeObject(SyntaxKind.ExpressionStatement, {
         expression,
     }) as unknown as ExpressionStatement;
+}
+
+export function createDirectiveStatement(text: string): DirectiveStatement {
+    return new NodeObject(SyntaxKind.DirectiveStatement, {
+        text,
+    }) as unknown as DirectiveStatement;
 }
 
 export function createBlock(statements: readonly Statement[], multiLine?: boolean): Block {

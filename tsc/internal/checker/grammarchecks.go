@@ -724,7 +724,7 @@ func (c *Checker) checkGrammarForUseStrictSimpleParameterList(node *ast.Node) bo
 		body := node.Body()
 		var useStrictDirective *ast.Node
 		if body != nil && ast.IsBlock(body) {
-			useStrictDirective = binder.FindUseStrictPrologue(ast.GetSourceFileOfNode(node), body.Statements())
+			useStrictDirective = binder.FindUseStrictPrologue(body.Statements())
 		}
 		if useStrictDirective != nil {
 			nonSimpleParameters := core.Filter(node.Parameters(), func(n *ast.Node) bool {

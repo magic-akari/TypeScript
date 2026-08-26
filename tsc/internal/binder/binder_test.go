@@ -10,7 +10,25 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/fixtures"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/osvfs"
+	"gotest.tools/v3/assert"
 )
+
+func TestFindUseStrictPrologueUsesRawDirectiveValue(t *testing.T) {
+	t.Parallel()
+
+	parse := func(sourceText string) *ast.SourceFile {
+		return parser.ParseSourceFile(ast.SourceFileParseOptions{
+			FileName: "/index.ts",
+			Path:     "/index.ts",
+		}, sourceText, core.ScriptKindTS)
+	}
+
+	exact := parse(`"use strict";`)
+	assert.Assert(t, FindUseStrictPrologue(exact.Statements.Nodes) != nil)
+
+	escaped := parse(`"use\x20strict";`)
+	assert.Assert(t, FindUseStrictPrologue(escaped.Statements.Nodes) == nil)
+}
 
 func BenchmarkBind(b *testing.B) {
 	for _, f := range fixtures.BenchFixtures {

@@ -48,6 +48,7 @@ func SyntaxRequiresTrailingModuleBlockOrSemicolonOrASI(kind ast.Kind) bool {
 func SyntaxRequiresTrailingSemicolonOrASI(kind ast.Kind) bool {
 	return kind == ast.KindVariableStatement ||
 		kind == ast.KindExpressionStatement ||
+		kind == ast.KindDirectiveStatement ||
 		kind == ast.KindDoStatement ||
 		kind == ast.KindContinueStatement ||
 		kind == ast.KindBreakStatement ||

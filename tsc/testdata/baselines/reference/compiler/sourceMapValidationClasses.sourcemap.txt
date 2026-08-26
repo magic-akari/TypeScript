@@ -124,7 +124,7 @@ sourceFile:sourceMapValidationClasses.ts
 1->^^^^
 2 >    ^^^^^^^^^^^
 3 >               ^^^
-4 >                  ^^^^->
+4 >                  ^^^^^^->
 1->
 2 >    
 3 >               Bar
@@ -132,18 +132,21 @@ sourceFile:sourceMapValidationClasses.ts
 2 >Emitted(5, 16) Source(1, 15) + SourceIndex(0)
 3 >Emitted(5, 19) Source(1, 18) + SourceIndex(0)
 ---
->>>        "use strict";
+>>>        ("use strict");
 1->^^^^^^^^
-2 >        ^^^^^^^^^^^^
-3 >                    ^
-4 >                     ^^^->
+2 >        ^
+3 >         ^^^^^^^^^^^^
+4 >                     ^^
+5 >                       ^->
 1-> {
   >    
-2 >        "use strict"
-3 >                    ;
+2 >        
+3 >         "use strict"
+4 >                     ;
 1->Emitted(6, 9) Source(2, 5) + SourceIndex(0)
-2 >Emitted(6, 21) Source(2, 17) + SourceIndex(0)
-3 >Emitted(6, 22) Source(2, 18) + SourceIndex(0)
+2 >Emitted(6, 10) Source(2, 5) + SourceIndex(0)
+3 >Emitted(6, 22) Source(2, 17) + SourceIndex(0)
+4 >Emitted(6, 24) Source(2, 18) + SourceIndex(0)
 ---
 >>>        class Greeter {
 1->^^^^^^^^

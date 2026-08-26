@@ -1341,18 +1341,17 @@ func (b *Binder) getStrictModeIdentifierMessage(node *ast.Node) *diagnostics.Mes
 	return diagnostics.Identifier_expected_0_is_a_reserved_word_in_strict_mode
 }
 
-// Should be called only on prologue directives (ast.IsPrologueDirective(node) should be true)
-func isUseStrictPrologueDirective(sourceFile *ast.SourceFile, node *ast.Node) bool {
-	nodeText := scanner.GetSourceTextOfNodeFromSourceFile(sourceFile, node.Expression(), false /*includeTrivia*/)
-	// Note: the node text must be exactly "use strict" or 'use strict'.  It is not ok for the
-	// string to contain unicode escapes (as per ES5).
-	return nodeText == "\"use strict\"" || nodeText == "'use strict'"
+// Should be called only on prologue directives (ast.IsPrologueDirective(node) should be true).
+func isUseStrictPrologueDirective(node *ast.Node) bool {
+	// The directive value is the raw source text between the quotes. Escapes are not decoded,
+	// so escaped spellings such as "use\x20strict" do not enable strict mode.
+	return node.AsDirectiveStatement().Value() == "use strict"
 }
 
-func FindUseStrictPrologue(sourceFile *ast.SourceFile, statements []*ast.Node) *ast.Node {
+func FindUseStrictPrologue(statements []*ast.Node) *ast.Node {
 	for _, statement := range statements {
 		if ast.IsPrologueDirective(statement) {
-			if isUseStrictPrologueDirective(sourceFile, statement) {
+			if isUseStrictPrologueDirective(statement) {
 				return statement
 			}
 		} else {
@@ -2149,9 +2148,9 @@ func (b *Binder) bindCaseOrDefaultClause(node *ast.Node) {
 }
 
 func (b *Binder) bindExpressionStatement(node *ast.Node) {
-	stmt := node.AsExpressionStatement()
-	b.bind(stmt.Expression)
-	b.maybeBindExpressionFlowIfCall(stmt.Expression)
+	expression := node.AsExpressionStatement().Expression
+	b.bind(expression)
+	b.maybeBindExpressionFlowIfCall(expression)
 }
 
 func (b *Binder) maybeBindExpressionFlowIfCall(node *ast.Node) {

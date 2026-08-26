@@ -49,6 +49,20 @@ func TestDecodeSourceFile_Statements(t *testing.T) {
 	}
 }
 
+func TestDecodeSourceFile_DirectiveStatement(t *testing.T) {
+	t.Parallel()
+	sf := parseSourceFile(`"use\x20strict";`)
+	buf, _, err := encoder.EncodeSourceFile(sf)
+	assert.NilError(t, err)
+
+	decoded, err := encoder.DecodeSourceFile(buf)
+	assert.NilError(t, err)
+	directive := decoded.Statements.Nodes[0]
+	assert.Equal(t, directive.Kind, ast.KindDirectiveStatement)
+	assert.Equal(t, directive.Text(), `"use\x20strict"`)
+	assert.Equal(t, directive.AsDirectiveStatement().Value(), `use\x20strict`)
+}
+
 func TestDecodeSourceFile_VariableDeclaration(t *testing.T) {
 	t.Parallel()
 	sf := parseSourceFile("let x = 1;")

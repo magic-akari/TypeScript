@@ -35,6 +35,7 @@ export function getNodeDataType(kind: SyntaxKind): number {
     switch (kind) {
         case SyntaxKind.Identifier:
         case SyntaxKind.PrivateIdentifier:
+        case SyntaxKind.DirectiveStatement:
         case SyntaxKind.JsxText:
         case SyntaxKind.JSDocText:
         case SyntaxKind.JSDocLink:

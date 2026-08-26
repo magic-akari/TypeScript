@@ -12,6 +12,7 @@ func getNodeDataType(node *ast.Node) uint32 {
 	switch node.Kind {
 	case ast.KindIdentifier,
 		ast.KindPrivateIdentifier,
+		ast.KindDirectiveStatement,
 		ast.KindJsxText,
 		ast.KindJSDocText,
 		ast.KindJSDocLink,
@@ -664,6 +665,8 @@ func recordNodeStrings(node *ast.Node, strs *stringTable) uint32 {
 		return strs.add(node.AsIdentifier().Text, node.Kind, node.Pos(), node.End())
 	case ast.KindPrivateIdentifier:
 		return strs.add(node.AsPrivateIdentifier().Text, node.Kind, node.Pos(), node.End())
+	case ast.KindDirectiveStatement:
+		return strs.add(node.AsDirectiveStatement().Text, node.Kind, node.Pos(), node.End())
 	case ast.KindJsxText:
 		return strs.add(node.AsJsxText().Text, node.Kind, node.Pos(), node.End())
 	case ast.KindJSDocText:
