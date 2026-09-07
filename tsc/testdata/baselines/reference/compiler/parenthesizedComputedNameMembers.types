@@ -1,0 +1,116 @@
+//// [tests/cases/compiler/parenthesizedComputedNameMembers.ts] ////
+
+=== parenthesizedComputedNameMembers.ts ===
+class ParenthesizedMembers {
+>ParenthesizedMembers : ParenthesizedMembers
+
+    [(0)] = "zero";
+>[(0)] : string
+>(0) : 0
+>0 : 0
+>"zero" : "zero"
+
+    [((-1))]() { return "negative"; }
+>[((-1))] : () => string
+>((-1)) : -1
+>(-1) : -1
+>-1 : -1
+>1 : 1
+>"negative" : "negative"
+
+    [(+2)]() { return "positive"; }
+>[(+2)] : () => string
+>(+2) : 2
+>+2 : 2
+>2 : 2
+>"positive" : "positive"
+
+    get [("value")]() { return 1; }
+>[("value")] : number
+>("value") : "value"
+>"value" : "value"
+>1 : 1
+
+    set [(("value"))](value: number) {}
+>[(("value"))] : number
+>(("value")) : "value"
+>("value") : "value"
+>"value" : "value"
+>value : number
+
+    get [("other")]() { return "other"; }
+>[("other")] : string
+>("other") : "other"
+>"other" : "other"
+>"other" : "other"
+
+    set ["other"](value: string) {}
+>["other"] : string
+>"other" : "other"
+>value : string
+}
+
+const members = new ParenthesizedMembers();
+>members : ParenthesizedMembers
+>new ParenthesizedMembers() : ParenthesizedMembers
+>ParenthesizedMembers : typeof ParenthesizedMembers
+
+members[0];
+>members[0] : string
+>members : ParenthesizedMembers
+>0 : 0
+
+members[-1]();
+>members[-1]() : string
+>members[-1] : () => string
+>members : ParenthesizedMembers
+>-1 : -1
+>1 : 1
+
+members[2]();
+>members[2]() : string
+>members[2] : () => string
+>members : ParenthesizedMembers
+>2 : 2
+
+members.value = 1;
+>members.value = 1 : 1
+>members.value : number
+>members : ParenthesizedMembers
+>value : number
+>1 : 1
+
+members.other = "other";
+>members.other = "other" : "other"
+>members.other : string
+>members : ParenthesizedMembers
+>other : string
+>"other" : "other"
+
+const dynamicKey: string = "dynamic";
+>dynamicKey : string
+>"dynamic" : "dynamic"
+
+const object = {
+>object : { [x: string]: number; literal: number; }
+>{    [(("literal"))]: 1,    [(dynamicKey)]: 2,} : { [x: string]: number; literal: number; }
+
+    [(("literal"))]: 1,
+>[(("literal"))] : number
+>(("literal")) : "literal"
+>("literal") : "literal"
+>"literal" : "literal"
+>1 : 1
+
+    [(dynamicKey)]: 2,
+>[(dynamicKey)] : number
+>(dynamicKey) : string
+>dynamicKey : string
+>2 : 2
+
+};
+object.literal;
+>object.literal : number
+>object : { [x: string]: number; literal: number; }
+>literal : number
+

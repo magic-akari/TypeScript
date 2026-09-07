@@ -1608,7 +1608,7 @@ func IsDynamicName(name *Node) bool {
 	var expr *Node
 	switch name.Kind {
 	case KindComputedPropertyName:
-		expr = name.Expression()
+		expr = SkipParentheses(name.Expression())
 	case KindElementAccessExpression:
 		expr = SkipParentheses(name.AsElementAccessExpression().ArgumentExpression)
 	default:
@@ -3208,7 +3208,7 @@ func GetPropertyNameForPropertyNameNode(name *Node) string {
 		KindNumericLiteral, KindBigIntLiteral, KindJsxNamespacedName:
 		return name.Text()
 	case KindComputedPropertyName:
-		nameExpression := name.Expression()
+		nameExpression := SkipParentheses(name.Expression())
 		if IsStringOrNumericLiteralLike(nameExpression) {
 			return nameExpression.Text()
 		}

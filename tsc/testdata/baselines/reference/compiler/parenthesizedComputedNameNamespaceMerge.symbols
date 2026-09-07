@@ -1,0 +1,66 @@
+//// [tests/cases/compiler/parenthesizedComputedNameNamespaceMerge.ts] ////
+
+=== parenthesizedComputedNameNamespaceMerge.ts ===
+class C {
+>C : Symbol(C, Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 0), Decl(parenthesizedComputedNameNamespaceMerge.ts, 4, 1))
+
+    static ['x']() { return 'x'; }
+>['x'] : Symbol(C['x'], Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 9), Decl(parenthesizedComputedNameNamespaceMerge.ts, 6, 13))
+>'x' : Symbol(C['x'], Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 9), Decl(parenthesizedComputedNameNamespaceMerge.ts, 6, 13))
+
+    static [('y')]() { return 'y'; }
+>[('y')] : Symbol(C[('y')], Decl(parenthesizedComputedNameNamespaceMerge.ts, 1, 34), Decl(parenthesizedComputedNameNamespaceMerge.ts, 7, 25))
+
+    static [((`z`))]() { return 'z'; }
+>[((`z`))] : Symbol(C[((`z`))], Decl(parenthesizedComputedNameNamespaceMerge.ts, 2, 36), Decl(parenthesizedComputedNameNamespaceMerge.ts, 8, 25))
+}
+
+namespace C {
+>C : Symbol(C, Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 0), Decl(parenthesizedComputedNameNamespaceMerge.ts, 4, 1))
+
+    export interface x {}
+>x : Symbol(['x'], Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 9), Decl(parenthesizedComputedNameNamespaceMerge.ts, 6, 13))
+
+    export interface y {}
+>y : Symbol([('y')], Decl(parenthesizedComputedNameNamespaceMerge.ts, 1, 34), Decl(parenthesizedComputedNameNamespaceMerge.ts, 7, 25))
+
+    export interface z {}
+>z : Symbol([((`z`))], Decl(parenthesizedComputedNameNamespaceMerge.ts, 2, 36), Decl(parenthesizedComputedNameNamespaceMerge.ts, 8, 25))
+}
+
+function A() { return 1; }
+>A : Symbol(A, Decl(parenthesizedComputedNameNamespaceMerge.ts, 10, 1))
+
+function B() { return 2; }
+>B : Symbol(B, Decl(parenthesizedComputedNameNamespaceMerge.ts, 12, 26))
+
+function D() { return 3; }
+>D : Symbol(D, Decl(parenthesizedComputedNameNamespaceMerge.ts, 13, 26))
+
+namespace N {
+>N : Symbol(N, Decl(parenthesizedComputedNameNamespaceMerge.ts, 14, 26))
+
+    import A = C.x;
+>A : Symbol(A, Decl(parenthesizedComputedNameNamespaceMerge.ts, 16, 13))
+>C : Symbol(C, Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 0), Decl(parenthesizedComputedNameNamespaceMerge.ts, 4, 1))
+>x : Symbol(A, Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 9), Decl(parenthesizedComputedNameNamespaceMerge.ts, 6, 13))
+
+    import B = C.y;
+>B : Symbol(B, Decl(parenthesizedComputedNameNamespaceMerge.ts, 17, 19))
+>C : Symbol(C, Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 0), Decl(parenthesizedComputedNameNamespaceMerge.ts, 4, 1))
+>y : Symbol(B, Decl(parenthesizedComputedNameNamespaceMerge.ts, 1, 34), Decl(parenthesizedComputedNameNamespaceMerge.ts, 7, 25))
+
+    import D = C.z;
+>D : Symbol(D, Decl(parenthesizedComputedNameNamespaceMerge.ts, 18, 19))
+>C : Symbol(C, Decl(parenthesizedComputedNameNamespaceMerge.ts, 0, 0), Decl(parenthesizedComputedNameNamespaceMerge.ts, 4, 1))
+>z : Symbol(D, Decl(parenthesizedComputedNameNamespaceMerge.ts, 2, 36), Decl(parenthesizedComputedNameNamespaceMerge.ts, 8, 25))
+
+    console.log(A(), B(), D());
+>console.log : Symbol(Console.log, Decl(lib.dom.d.ts, --, --))
+>console : Symbol(console, Decl(lib.dom.d.ts, --, --))
+>log : Symbol(Console.log, Decl(lib.dom.d.ts, --, --))
+>A : Symbol(A, Decl(parenthesizedComputedNameNamespaceMerge.ts, 16, 13))
+>B : Symbol(B, Decl(parenthesizedComputedNameNamespaceMerge.ts, 17, 19))
+>D : Symbol(D, Decl(parenthesizedComputedNameNamespaceMerge.ts, 18, 19))
+}
+

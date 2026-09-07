@@ -329,14 +329,8 @@ func (b *Binder) getDeclarationName(node *ast.Node) string {
 			return name.Text()
 		}
 		if ast.IsComputedPropertyName(name) {
-			nameExpression := name.Expression()
-			// treat computed property names where expression is string/numeric literal as just string/numeric literal
-			if ast.IsStringOrNumericLiteralLike(nameExpression) {
-				return nameExpression.Text()
-			}
-			if ast.IsSignedNumericLiteral(nameExpression) {
-				unaryExpression := nameExpression.AsPrefixUnaryExpression()
-				return scanner.TokenToString(unaryExpression.Operator) + unaryExpression.Operand.Text()
+			if propertyName := ast.GetPropertyNameForPropertyNameNode(name); propertyName != ast.InternalSymbolNameMissing {
+				return propertyName
 			}
 			panic("Only computed properties with literal names have declaration names")
 		}

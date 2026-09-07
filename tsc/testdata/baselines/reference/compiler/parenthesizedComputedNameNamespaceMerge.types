@@ -1,0 +1,74 @@
+//// [tests/cases/compiler/parenthesizedComputedNameNamespaceMerge.ts] ////
+
+=== parenthesizedComputedNameNamespaceMerge.ts ===
+class C {
+>C : C
+
+    static ['x']() { return 'x'; }
+>['x'] : () => string
+>'x' : "x"
+>'x' : "x"
+
+    static [('y')]() { return 'y'; }
+>[('y')] : () => string
+>('y') : "y"
+>'y' : "y"
+>'y' : "y"
+
+    static [((`z`))]() { return 'z'; }
+>[((`z`))] : () => string
+>((`z`)) : "z"
+>(`z`) : "z"
+>`z` : "z"
+>'z' : "z"
+}
+
+namespace C {
+    export interface x {}
+    export interface y {}
+    export interface z {}
+}
+
+function A() { return 1; }
+>A : () => number
+>1 : 1
+
+function B() { return 2; }
+>B : () => number
+>2 : 2
+
+function D() { return 3; }
+>D : () => number
+>3 : 3
+
+namespace N {
+>N : typeof N
+
+    import A = C.x;
+>A : () => string
+>C : C
+>x : A
+
+    import B = C.y;
+>B : () => string
+>C : C
+>y : B
+
+    import D = C.z;
+>D : () => string
+>C : C
+>z : D
+
+    console.log(A(), B(), D());
+>console.log(A(), B(), D()) : void
+>console.log : (...data: any[]) => void
+>console : Console
+>log : (...data: any[]) => void
+>A() : string
+>A : () => string
+>B() : string
+>B : () => string
+>D() : string
+>D : () => string
+}
+

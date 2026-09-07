@@ -16,30 +16,30 @@ const t2 = {
 >t2 : Symbol(t2, Decl(duplicateObjectLiteralProperty_computedName1.ts, 5, 5))
 
     1: 1,
->1 : Symbol(1, Decl(duplicateObjectLiteralProperty_computedName1.ts, 5, 12))
+>1 : Symbol(1, Decl(duplicateObjectLiteralProperty_computedName1.ts, 5, 12), Decl(duplicateObjectLiteralProperty_computedName1.ts, 6, 9))
 
     [+1]: 0 // duplicate
->[+1] : Symbol([+1], Decl(duplicateObjectLiteralProperty_computedName1.ts, 6, 9))
+>[+1] : Symbol(1, Decl(duplicateObjectLiteralProperty_computedName1.ts, 5, 12), Decl(duplicateObjectLiteralProperty_computedName1.ts, 6, 9))
 }
 
 const t3 = {
 >t3 : Symbol(t3, Decl(duplicateObjectLiteralProperty_computedName1.ts, 10, 5))
 
     "1": 1,
->"1" : Symbol("1", Decl(duplicateObjectLiteralProperty_computedName1.ts, 10, 12))
+>"1" : Symbol("1", Decl(duplicateObjectLiteralProperty_computedName1.ts, 10, 12), Decl(duplicateObjectLiteralProperty_computedName1.ts, 11, 11))
 
     [+1]: 0 // duplicate
->[+1] : Symbol([+1], Decl(duplicateObjectLiteralProperty_computedName1.ts, 11, 11))
+>[+1] : Symbol("1", Decl(duplicateObjectLiteralProperty_computedName1.ts, 10, 12), Decl(duplicateObjectLiteralProperty_computedName1.ts, 11, 11))
 }
 
 const t4 = {
 >t4 : Symbol(t4, Decl(duplicateObjectLiteralProperty_computedName1.ts, 15, 5))
 
     "+1": 1,
->"+1" : Symbol("+1", Decl(duplicateObjectLiteralProperty_computedName1.ts, 15, 12), Decl(duplicateObjectLiteralProperty_computedName1.ts, 16, 12))
+>"+1" : Symbol("+1", Decl(duplicateObjectLiteralProperty_computedName1.ts, 15, 12))
 
     [+1]: 0 // two different keys, "+1", "1"
->[+1] : Symbol("+1", Decl(duplicateObjectLiteralProperty_computedName1.ts, 15, 12), Decl(duplicateObjectLiteralProperty_computedName1.ts, 16, 12))
+>[+1] : Symbol([+1], Decl(duplicateObjectLiteralProperty_computedName1.ts, 16, 12))
 }
 
 const t5 = {

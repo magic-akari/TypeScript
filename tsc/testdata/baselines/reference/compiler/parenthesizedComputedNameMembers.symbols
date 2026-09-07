@@ -1,0 +1,75 @@
+//// [tests/cases/compiler/parenthesizedComputedNameMembers.ts] ////
+
+=== parenthesizedComputedNameMembers.ts ===
+class ParenthesizedMembers {
+>ParenthesizedMembers : Symbol(ParenthesizedMembers, Decl(parenthesizedComputedNameMembers.ts, 0, 0))
+
+    [(0)] = "zero";
+>[(0)] : Symbol(ParenthesizedMembers[(0)], Decl(parenthesizedComputedNameMembers.ts, 0, 28))
+
+    [((-1))]() { return "negative"; }
+>[((-1))] : Symbol(ParenthesizedMembers[((-1))], Decl(parenthesizedComputedNameMembers.ts, 1, 19))
+
+    [(+2)]() { return "positive"; }
+>[(+2)] : Symbol(ParenthesizedMembers[(+2)], Decl(parenthesizedComputedNameMembers.ts, 2, 37))
+
+    get [("value")]() { return 1; }
+>[("value")] : Symbol(ParenthesizedMembers[("value")], Decl(parenthesizedComputedNameMembers.ts, 3, 35), Decl(parenthesizedComputedNameMembers.ts, 5, 35))
+
+    set [(("value"))](value: number) {}
+>[(("value"))] : Symbol(ParenthesizedMembers[("value")], Decl(parenthesizedComputedNameMembers.ts, 3, 35), Decl(parenthesizedComputedNameMembers.ts, 5, 35))
+>value : Symbol(value, Decl(parenthesizedComputedNameMembers.ts, 6, 22))
+
+    get [("other")]() { return "other"; }
+>[("other")] : Symbol(ParenthesizedMembers[("other")], Decl(parenthesizedComputedNameMembers.ts, 6, 39), Decl(parenthesizedComputedNameMembers.ts, 8, 41))
+
+    set ["other"](value: string) {}
+>["other"] : Symbol(ParenthesizedMembers[("other")], Decl(parenthesizedComputedNameMembers.ts, 6, 39), Decl(parenthesizedComputedNameMembers.ts, 8, 41))
+>"other" : Symbol(ParenthesizedMembers[("other")], Decl(parenthesizedComputedNameMembers.ts, 6, 39), Decl(parenthesizedComputedNameMembers.ts, 8, 41))
+>value : Symbol(value, Decl(parenthesizedComputedNameMembers.ts, 9, 18))
+}
+
+const members = new ParenthesizedMembers();
+>members : Symbol(members, Decl(parenthesizedComputedNameMembers.ts, 12, 5))
+>ParenthesizedMembers : Symbol(ParenthesizedMembers, Decl(parenthesizedComputedNameMembers.ts, 0, 0))
+
+members[0];
+>members : Symbol(members, Decl(parenthesizedComputedNameMembers.ts, 12, 5))
+>0 : Symbol(ParenthesizedMembers[(0)], Decl(parenthesizedComputedNameMembers.ts, 0, 28))
+
+members[-1]();
+>members : Symbol(members, Decl(parenthesizedComputedNameMembers.ts, 12, 5))
+
+members[2]();
+>members : Symbol(members, Decl(parenthesizedComputedNameMembers.ts, 12, 5))
+>2 : Symbol(ParenthesizedMembers[(+2)], Decl(parenthesizedComputedNameMembers.ts, 2, 37))
+
+members.value = 1;
+>members.value : Symbol(ParenthesizedMembers[("value")], Decl(parenthesizedComputedNameMembers.ts, 3, 35), Decl(parenthesizedComputedNameMembers.ts, 5, 35))
+>members : Symbol(members, Decl(parenthesizedComputedNameMembers.ts, 12, 5))
+>value : Symbol(ParenthesizedMembers[("value")], Decl(parenthesizedComputedNameMembers.ts, 3, 35), Decl(parenthesizedComputedNameMembers.ts, 5, 35))
+
+members.other = "other";
+>members.other : Symbol(ParenthesizedMembers[("other")], Decl(parenthesizedComputedNameMembers.ts, 6, 39), Decl(parenthesizedComputedNameMembers.ts, 8, 41))
+>members : Symbol(members, Decl(parenthesizedComputedNameMembers.ts, 12, 5))
+>other : Symbol(ParenthesizedMembers[("other")], Decl(parenthesizedComputedNameMembers.ts, 6, 39), Decl(parenthesizedComputedNameMembers.ts, 8, 41))
+
+const dynamicKey: string = "dynamic";
+>dynamicKey : Symbol(dynamicKey, Decl(parenthesizedComputedNameMembers.ts, 19, 5))
+
+const object = {
+>object : Symbol(object, Decl(parenthesizedComputedNameMembers.ts, 20, 5))
+
+    [(("literal"))]: 1,
+>[(("literal"))] : Symbol([(("literal"))], Decl(parenthesizedComputedNameMembers.ts, 20, 16))
+
+    [(dynamicKey)]: 2,
+>[(dynamicKey)] : Symbol([(dynamicKey)], Decl(parenthesizedComputedNameMembers.ts, 21, 23))
+>dynamicKey : Symbol(dynamicKey, Decl(parenthesizedComputedNameMembers.ts, 19, 5))
+
+};
+object.literal;
+>object.literal : Symbol([(("literal"))], Decl(parenthesizedComputedNameMembers.ts, 20, 16))
+>object : Symbol(object, Decl(parenthesizedComputedNameMembers.ts, 20, 5))
+>literal : Symbol([(("literal"))], Decl(parenthesizedComputedNameMembers.ts, 20, 16))
+
